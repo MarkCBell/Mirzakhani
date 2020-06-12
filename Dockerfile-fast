@@ -1,0 +1,17 @@
+
+FROM python:slim
+
+# Install dev version of curver.
+RUN pip install pip --upgrade
+RUN pip install curver
+
+# Copy scripts.
+COPY *.py ./
+
+# Run.
+CMD python fast_S_2_0.py
+
+# Build with:
+# $ docker build -t markcbell/mirzakhani-fast -f Dockerfile-fast .
+# Run with:
+# $ docker run --rm -t markcbell/mirzakhani-fast
