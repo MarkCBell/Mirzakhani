@@ -1,13 +1,11 @@
 
 import os
-import subprocess
 from subprocess import Popen, PIPE
 try:
     from sage.all import Polyhedron as PP
 except ImportError:
     PP = None
-import tempfile
-import shutil
+from tempfile import TemporaryDirectory
 from fractions import Fraction
 import inspect
 from decorator import decorator
@@ -122,27 +120,25 @@ class Polyhedron:
 
         # The cwd argument is needed because latte
         # always produces diagnostic output files.
-        tmpdir = tempfile.mkdtemp()
-        # with TemporaryDirectory() as tmpdir:
-        with open(os.path.join(tmpdir, 'test.pol'), 'w') as x:
-            x.write(latte_input)
-        args += [os.path.join(tmpdir, 'test.pol')]
-        # X = subprocess.run(args, capture_output=True)
-        # ans, err = X.stdout, X.stderr
-        # ret_code = X.returncode
-        latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=str(tmpdir))
-        ans, err = latte_proc.communicate()
-        ret_code = latte_proc.poll()
-        
-        if ans: # Sometimes (when LattE's preproc does the work), no output appears on stdout.
-            ans = ans.splitlines()[-1].decode()
-        else:
-            # opening a file is slow (30e-6s), so we read the file
-            # numOfLatticePoints only in case of a IndexError above
-            with open(os.path.join(tmpdir, 'numOfLatticePoints'), 'r') as f:
-                ans = f.read()
-        
-        shutil.rmtree(tmpdir)
+        with TemporaryDirectory() as tmpdir:
+            # with TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, 'test.pol'), 'w') as x:
+                x.write(latte_input)
+            args += [os.path.join(tmpdir, 'test.pol')]
+            # X = subprocess.run(args, capture_output=True)
+            # ans, err = X.stdout, X.stderr
+            # ret_code = X.returncode
+            latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=str(tmpdir))
+            ans, err = latte_proc.communicate()
+            ret_code = latte_proc.poll()
+            
+            if ans: # Sometimes (when LattE's preproc does the work), no output appears on stdout.
+                ans = ans.splitlines()[-1].decode()
+            else:
+                # opening a file is slow (30e-6s), so we read the file
+                # numOfLatticePoints only in case of a IndexError above
+                with open(os.path.join(tmpdir, 'numOfLatticePoints'), 'r') as f:
+                    ans = f.read()
 
         try:
             return int(ans)
