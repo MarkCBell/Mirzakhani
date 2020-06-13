@@ -101,7 +101,7 @@ class Polyhedron:
         # latte_input = 'H-representation\n{} {} rational\n{}\nlinearity {} {}'.format(
         latte_input = '{} {}\n{}\nlinearity {} {}'.format(
             len(self.eqns) + len(self.ieqs), self.ambient_dimension+1,
-            '\n'.join(' '.join(str(x) for x in X) for X in (self.eqns + self.ieqs)),
+            '\n'.join(' '.join(str(x) for x in X) for X in self.eqns + self.ieqs),
             len(self.eqns), ' '.join(str(i+1) for i in range(len(self.eqns))),
             )
         
@@ -150,7 +150,7 @@ class Polyhedron:
         cddlib_input = 'H-representation\nlinearity {} {}\nbegin\n{} {} rational\n{}\nend'.format(
             len(self.eqns), ' '.join(str(i+1) for i in range(len(self.eqns))),
             len(self.eqns) + len(self.ieqs), self.ambient_dimension+1,
-            '\n'.join(' '.join(str(x) for x in X) for X in (self.eqns + self.ieqs)),
+            '\n'.join(' '.join(str(x) for x in X) for X in self.eqns + self.ieqs),
             )
         
         args = [os.path.abspath(os.path.join('bin', 'cddexec_gmp')), '--rep']
@@ -180,7 +180,7 @@ def get_polyhedron(T, max_weight, zeroed=None, zeros=None):
             z, w = B.labels[1], B.labels[2]
             eqn[x], eqn[y], eqn[z], eqn[w] = +1, +1, -1, -1
         else:
-            A = self.triangulation.corner_lookup[i]
+            A = T.corner_lookup[i]
             x = A.labels[1] if A[1] == ~A[0] else A.labels[2]
             z = A.labels[0]
             eqn[x], eqn[z] = +1, -1

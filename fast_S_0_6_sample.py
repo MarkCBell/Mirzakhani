@@ -1,11 +1,11 @@
 
+from itertools import count
 from random import randrange
 import multiprocessing as mp
 import numpy as np
-from itertools import count, product
-from fractions import Fraction
 
 import curver
+
 from processor import process
 from polyhedron import Polyhedron
 
@@ -60,14 +60,8 @@ if __name__ == '__main__':
     print('Drawing from [0, {})'.format(P.integral_points_count()))
     
     setup = dict(T=T, P=P)
-    if args.systematic:
-        points = product(*[range(lower, upper) for lower, upper in B])
-        filtered_points = (point for point in points if point in P)
-        datum = (dict(index=index, point=point) for index, point in enumerate(filtered_points))
-    else:
-        points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
-        filtered_points = (point for point in points if point in P)
-        datum = (dict(index=-1, point=point) for index, point in enumerate(filtered_points))
+    points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
+    datum = (dict(index=-1, point=point) for point in points if point in P)
     
     process(setup, from_point, datum, cores=args.cores, path=args.output)
 

@@ -1,9 +1,10 @@
 
-import sys
-import re
-import pandas as pd
 from glob import glob
 from math import sqrt
+import re
+import sys
+
+import pandas as pd
 
 EXTRACT = r'(?P<index>-?\d+): (?P<coordinate>\[[0-9, ]+\]), (?P<num_components>\d+), (?P<topo>.+)'
 IS_PRIMITIVE = r'\(\[([0-9]*(, |\]))*, \[((\[([01]?(, |\]))*)(, |\]))*(, \[\[\](, \[\])*\])?\)'

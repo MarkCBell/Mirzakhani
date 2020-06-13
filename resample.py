@@ -1,9 +1,6 @@
 
-from polyhedron import Polyhedron, get_polyhedron
+from polyhedron import get_polyhedron
 
-from random import randrange
-import multiprocessing as mp
-from collections import namedtuple
 from processor import process
 
 import curver

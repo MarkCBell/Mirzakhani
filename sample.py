@@ -1,12 +1,11 @@
 
-from polyhedron import Polyhedron, get_polyhedron
-
 from random import randrange
 import multiprocessing as mp
-from collections import namedtuple
-from processor import process
 
 import curver
+
+from polyhedron import get_polyhedron
+from processor import process
 
 def from_index(T, P, closed, index):
     branch_weights = [int(x) for x in P.get_integral_point(index, triangulation='cddlib')]

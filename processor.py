@@ -19,7 +19,7 @@ def process(setup, function, datum, cores=1, path=None):
     output_queue = mp.Queue()
     
     with (open(path, 'w') if path is not None else sys.stdout) as F:
-        with mp.Pool(cores, initializer=helper, initargs=(input_queue, output_queue, setup, function)) as pool:
+        with mp.Pool(cores, initializer=helper, initargs=(input_queue, output_queue, setup, function)):
             for data, do_output in zip(chain(datum, (None for _ in range(cores))), chain((False for _ in range(cores)), cycle([True]))):
                 if data is not None:
                     input_queue.put(data)

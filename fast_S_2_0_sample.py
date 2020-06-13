@@ -1,5 +1,5 @@
 
-from itertools import count, product
+from itertools import count
 from random import randrange
 import multiprocessing as mp
 import numpy as np
@@ -34,7 +34,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='sample curves on S_2 of at most a given weight')
     parser.add_argument('--weight', '-w', type=int, default=1000000, help='max weight of curve allowed')
     parser.add_argument('--lower', '-l', type=int, default=0, help='min weight of curve allowed')
-    parser.add_argument('--systematic', '-s', action='store_true', help='evaluate all')
     parser.add_argument('--cores', '-c', type=int, default=1, help='number of cores to use')
     parser.add_argument('--output', '-o', help='path to output to if not stdout')
     args = parser.parse_args()
@@ -58,14 +57,8 @@ if __name__ == '__main__':
     print('P density: {:.2f}'.format(100.0 * p_count / box_count))
     
     setup = dict(T=T, P=P)
-    if args.systematic:
-        points = product(*[range(lower, upper) for lower, upper in B])
-        filtered_points = (point for point in points if point in P)
-        datum = (dict(index=index, point=point) for index, point in enumerate(filtered_points))
-    else:
-        points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
-        filtered_points = (point for point in points if point in P)
-        datum = (dict(index=-1, point=point) for index, point in enumerate(filtered_points))
+    points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
+    datum = (dict(index=-1, point=point) for point in points if point in P)
     
     process(setup, from_point, datum, cores=args.cores, path=args.output)
 
