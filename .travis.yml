@@ -6,4 +6,8 @@ services:
 script:
   - docker build -t markcbell/mirzakhani-fast -f Dockerfile-fast .
   - docker build -t markcbell/mirzakhani .
+  - echo "Testing fast"
+  - timeout 1m docker run --rm -t markcbell/mirzakhani-fast
+  - echo "Testing classic"
+  - timeout 1m docker run --rm -t markcbell/mirzakhani
 
