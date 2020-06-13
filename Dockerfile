@@ -3,7 +3,8 @@ FROM python:latest
 
 # Copy, build and relocate latte-int.
 WORKDIR /root/
-RUN curl https://github.com/latte-int/latte/releases/download/version_1_7_5/latte-integrale-1.7.5.tar.gz | tar -xzf - && \
+RUN wget https://github.com/latte-int/latte/releases/download/version_1_7_5/latte-integrale-1.7.5.tar.gz && \
+    tar -xzf latte-integrale-1.7.5.tar.gz && \
     cd ./latte-integrale-1.7.5/ && \
     ./configure && \
     make && \
