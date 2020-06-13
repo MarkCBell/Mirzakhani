@@ -9,7 +9,7 @@ RUN pip install curver
 COPY *.py ./
 
 # Run.
-CMD python fast_S_2_0.py
+CMD python fast_sample.py
 
 # Build with:
 # $ docker build -t markcbell/mirzakhani-fast -f Dockerfile-fast .
