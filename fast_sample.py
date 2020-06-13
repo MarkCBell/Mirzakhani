@@ -9,12 +9,10 @@ import curver
 from processor import process
 from polyhedron import Polyhedron
 
-
 def from_point(T, embedding, closed, point):
     geometric = [int(w) for w in embedding.dot(point)]  # Matrix multiply to embed into weight space.
     c = T(geometric)
     return '-1: {}, {}, {}'.format(geometric, c.num_components(), c.topological_type(closed=closed))
-
 
 if __name__ == '__main__':
     import argparse
