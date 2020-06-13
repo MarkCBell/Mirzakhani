@@ -48,13 +48,7 @@ if __name__ == '__main__':
         ] + [[-1] + [0] * i + [1] + [0] * (6-i-1) for i in range(6)]
     
     P = Polyhedron(eqns=[], ieqs=ieqs)
-    B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.bounding_box())]
-    
-    box_count = prod(upper - lower for lower, upper in B)
-    p_count = P.integral_points_count()
-    print(P)
-    print('Drawing from [0, {})'.format(p_count))
-    print('P density: {:.2f}'.format(100.0 * p_count / box_count))
+    B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.basic_bounding_box())]
     
     setup = dict(T=T, P=P)
     points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())

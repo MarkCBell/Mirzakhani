@@ -166,6 +166,13 @@ class Polyhedron:
     
     def bounding_box(self):
         return list(zip(*[(min(coords), max(coords)) for coords in zip(*self.vertices())]))
+    
+    def basic_bounding_box(self):
+        non_negative = [ieq for ieq in self.ieqs if all(entry >= 0 for entry in ieq[1:])]
+        non_positive = [ieq for ieq in self.ieqs if all(entry <= 0 for entry in ieq[1:])]
+        print(non_positive)
+        return [max(-ieq[0] // ieq[i+1] for ieq in non_negative if ieq[i+1]) for i in range(self.ambient_dimension)], \
+            [min(-ieq[0] // ieq[i+1] + 1 for ieq in non_positive if ieq[i+1]) for i in range(self.ambient_dimension)]
 
 def get_polyhedron(T, max_weight, zeroed=None, zeros=None):
     if zeros is not None: zeroed = [(zeros >> i) & 1 for i in range(2 * T.zeta)][::-1]
