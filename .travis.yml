@@ -1,0 +1,9 @@
+language: python
+
+services:
+  - docker
+
+script:
+  - docker build -t markcbell/mirzakhani-fast -f Dockerfile-fast .
+  - docker build -t markcbell/mirzakhani .
+
