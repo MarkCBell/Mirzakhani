@@ -1,5 +1,5 @@
 
-from polyhedron import get_polyhedron
+from sample import get_polyhedron
 
 from processor import process
 
