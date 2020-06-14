@@ -67,7 +67,7 @@ class Polyhedron:
         coordinate = []
         P = self
         P_count = P.integral_points_count(**kwds)  # Record the number of integral points in P_{lower <= x_i < upper}.
-        bounding_box = self.bounding_box()
+        bounding_box = zip(*self.bounding_box())
         
         for axis, bounds in zip(axes, bounding_box):  # Now compute x_i, the ith component of coordinate.
             neg_axis = [-x for x in axis]
