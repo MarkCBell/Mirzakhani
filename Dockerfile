@@ -7,7 +7,7 @@ RUN wget https://github.com/latte-int/latte/releases/download/version_1_7_5/latt
     tar -xzf latte-integrale-1.7.5.tar.gz && \
     cd ./latte-integrale-1.7.5/ && \
     ./configure && \
-    make && \
+    make > /dev/null && \
     cp -r dest/bin ../bin && \
     cd .. && \
     rm -rf latte-integrale-1.7.5*
