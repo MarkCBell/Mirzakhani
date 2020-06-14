@@ -26,7 +26,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.genus == 0 and args.punctures == 6:
-        setup = dict(
+        common = dict(
             T=curver.load(0, 6).triangulation,
             embedding=np.array([
                 [ 1, 0, 1,-1, 0, 0],
@@ -55,9 +55,9 @@ if __name__ == '__main__':
             )
         B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.basic_bounding_box())]
         points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
-        datum = (dict(point=point) for point in points if point in P)
+        iterable = (dict(point=point) for point in points if point in P)
     elif args.genus == 2 and args.punctures == 0:
-        setup = dict(
+        common = dict(
             T=curver.load(2, 1).triangulation,
             embedding=np.array([
                 [2, 2, 2, 0, 0, 0],
@@ -80,9 +80,9 @@ if __name__ == '__main__':
             ] + [[-1] + [0] * i + [1] + [0] * (6-i-1) for i in range(6)])
         B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.basic_bounding_box())]
         points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
-        datum = (dict(point=point) for point in points if point in P)
+        iterable = (dict(point=point) for point in points if point in P)
     elif args.genus == 3 and args.punctures == 0:
-        setup = dict(
+        common = dict(
             T=curver.load(3, 1).triangulation,
             embedding=np.array([
                 #a1, b1, c1, a2, b2, c2, a3, b3, c3,  x,  y,  z
@@ -138,7 +138,7 @@ if __name__ == '__main__':
                 b3, c3 = randrange(1, (x + y) // 2 + 1), randrange(1, (x + y) // 2 + 1)
                 yield (a1, b1, c1, a2, b2, c2, a3, b3, c3, x, y, z)
         
-        datum = (dict(point=point) for point in points() if point in P)
+        iterable = (dict(point=point) for point in points() if point in P)
     
-    process(setup, from_point, datum, cores=args.cores if args.cores > 0 else mp.cpu_count(), path=args.output)
+    process(from_point, common, iterable, cores=args.cores if args.cores > 0 else mp.cpu_count(), path=args.output)
 

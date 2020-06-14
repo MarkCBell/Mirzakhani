@@ -43,10 +43,10 @@ if __name__ == '__main__':
     
     print('Drawing from [0, {})'.format(num_integral_points))
     
-    setup = {'T': T, 'P': P, 'closed': args.punctures == 0, 'labels': [label for label in [i for i in range(T.zeta)] + [~i for i in range(T.zeta)][::-1]]}
+    common = {'T': T, 'P': P, 'closed': args.punctures == 0, 'labels': [label for label in [i for i in range(T.zeta)] + [~i for i in range(T.zeta)][::-1]]}
     with open(args.path) as F:
-        datum = ({'geometric': eval(line)} for line in F)
-        process(setup, from_geometric, datum, cores=args.cores)
+        iterable = ({'geometric': eval(line)} for line in F)
+        process(from_geometric, common, iterable, cores=args.cores)
 
 # grep -oh "\[.*\]" ./* > data.all
 # python resample --genus=2 --punctures=0 --zeros=35 --weight=1000000 data.all

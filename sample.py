@@ -74,10 +74,10 @@ if __name__ == '__main__':
         print('Polytope dimension: Unknown')
     print('Drawing from [0, {})'.format(num_integral_points))
     
-    setup = dict(T=T, P=P, closed=args.punctures == 0)
-    datum = (dict(index=randrange(0, num_integral_points)) for _ in range(args.num))
+    common = dict(T=T, P=P, closed=args.punctures == 0)
+    iterable = (dict(index=randrange(0, num_integral_points)) for _ in range(args.num))
     
-    process(setup, from_index, datum, cores=args.cores, path=args.output)
+    process(from_index, common, iterable, cores=args.cores, path=args.output)
 
 # python sample.py --genus=2 --punctures=0 --zeros=35
 # python sample.py --genus=1 --punctures=2 --zeros=18
