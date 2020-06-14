@@ -4,7 +4,7 @@ import multiprocessing as mp
 
 import curver
 
-from polyhedron import get_polyhedron
+from polyhedron import Polyhedron
 from processor import process
 
 def from_index(T, P, closed, index):
