@@ -81,6 +81,49 @@ if __name__ == '__main__':
         B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.basic_bounding_box())]
         points = ([randrange(lower, upper+1) for lower, upper in B] for _ in count())
         iterable = (dict(point=point) for point in points if point in P)
+    elif args.genus == 2 and args.punctures == 1:
+        common = dict(
+            T=curver.load(2, 1).triangulation,
+            embedding=np.array([
+                [ 2, 2, 2,-2, 0, 0, 0, 0],
+                [ 0, 1, 1, 0, 0, 0, 0, 0],
+                [ 2, 1, 1,-2, 0, 0, 0, 0],
+                [ 1, 0, 1, 0, 0, 0, 0, 0],
+                [ 1, 1, 0, 0, 0, 0, 0, 0],
+                [ 0, 0, 0, 0, 0, 1, 1, 0],
+                [ 0, 0, 0, 0, 2, 1, 1,-2],
+                [ 0, 0, 0, 0, 1, 0, 1, 0],
+                [ 0, 0, 0, 0, 1, 1, 0, 0],
+                ], dtype=object),
+            closed=False,
+            )
+        P = Polyhedron(eqns=[], ieqs=[
+            [0, 1, 0, 1,-1, 0, 0, 0, 0],  # 1 + 3 - 4
+            [0, 1, 1, 0,-1, 0, 0, 0, 0],  # 1 + 2 - 4
+            [0, 0, 0, 0, 0, 1, 1, 0,-1],  # 5 + 6 - 8
+            [0, 0, 0, 0, 0, 1, 0, 1,-1],  # 5 + 7 - 8
+            [0,-1,-1,-1, 1, 1, 1, 1,-1],  # -1 - 2 - 3 + 4 + 5 + 6 + 7 - 8
+            [0, 1, 1, 1,-1,-1, 0, 0, 1],  # 1 + 2 + 3 - 4 - 5 + 8
+            [0, 1, 1, 1,-1, 1, 0, 0, 1],  # 1 + 2 + 3 - 4 + 5 + 8
+            [args.weight, -6, -5, -5, 4, -3, -3, -2, 2],
+            [-args.lower, 6, 5, 5, -4, 3, 3, 2, -2],
+            ] + [[-1] + [0] * i + [1] + [0] * (8-i-1) for i in range(8)]
+            )
+        
+        def points():
+            while True:
+            while True:
+                a, b, c, d = randrange(args.weight // 6), randrange(args.weight // 5), randrange(args.weight // 5), randrange(args.weight // 6)
+                if d < a + b and d < a + c: break
+            
+            while True:
+                w, x, y, z = randrange(args.weight // 3), randrange(args.weight // 3), randrange(args.weight // 2), randrange(args.weight // 3)
+                if z < w + x and z < w + y: break
+                
+                if a + b + c + z < d + w + x + y and d + w < a + b + c + z and d + z < a + b + c + w:
+                    yield (a, b, c, d, w, x, y, z)
+        
+        iterable = (dict(point=point) for point in points() if point in P)
     elif args.genus == 3 and args.punctures == 0:
         common = dict(
             T=curver.load(3, 1).triangulation,
