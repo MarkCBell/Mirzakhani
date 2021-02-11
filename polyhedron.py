@@ -30,6 +30,40 @@ class Polyhedron:
         self.eqns = eqns
         self.ieqs = ieqs
         self.ambient_dimension = len((self.eqns + self.ieqs)[0]) - 1
+    
+    @classmethod
+    def from_triangulation(cls, T, max_weight, zeroed=None, zeros=None):
+        if zeros is not None: zeroed = [(zeros >> i) & 1 for i in range(2 * T.zeta)][::-1]
+        # Build the polytope.
+        eqns, ieqs = [], []
+        # Edge equations.
+        for i in range(T.zeta):
+            eqn = [0] * 2*T.zeta
+            if T.is_flippable(i):
+                A, B = T.corner_lookup[i], T.corner_lookup[~i]
+                x, y = A.labels[1], A.labels[2]
+                z, w = B.labels[1], B.labels[2]
+                eqn[x], eqn[y], eqn[z], eqn[w] = +1, +1, -1, -1
+            else:
+                A = T.corner_lookup[i]
+                x = A.labels[1] if A[1] == ~A[0] else A.labels[2]
+                z = A.labels[0]
+                eqn[x], eqn[z] = +1, -1
+            eqns.append([0] + eqn)  # V_x + X_y == V_z + V_w.
+        # Zeroed (in)equalities
+        for i in range(2*T.zeta):
+            if not zeroed[i]:
+                ieq = [0] * 2*T.zeta
+                ieq[i] = +1
+                ieqs.append([-1] + ieq)  # V_i >= 1.
+            else:  # Zeroed equation.
+                eqn = [0] * 2*T.zeta
+                eqn[i] = +1
+                eqns.append([0] + eqn)  # V_i == 0.
+        # Max weight inequality.
+        ieqs.append([max_weight] + [-1] * 2*T.zeta)  # sum V_i <= max_weight.
+        return cls(eqns=eqns, ieqs=ieqs)
+    
     def __str__(self):
         return 'EQN:[\n{}\n]\nIEQS:[\n{}\n]'.format(',\n'.join(str(eqn) for eqn in self.eqns), ',\n'.join(str(ieq) for ieq in self.ieqs))
     

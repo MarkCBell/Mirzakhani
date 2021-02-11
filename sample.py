@@ -13,38 +13,6 @@ def from_index(T, P, closed, index):
     multicurve = T(geometric)
     return '{}: {}, {}, {}'.format(index, multicurve.geometric, multicurve.num_components(), multicurve.topological_type(closed=closed))
 
-def get_polyhedron(T, max_weight, zeroed=None, zeros=None):
-    if zeros is not None: zeroed = [(zeros >> i) & 1 for i in range(2 * T.zeta)][::-1]
-    # Build the polytope.
-    eqns, ieqs = [], []
-    # Edge equations.
-    for i in range(T.zeta):
-        eqn = [0] * 2*T.zeta
-        if T.is_flippable(i):
-            A, B = T.corner_lookup[i], T.corner_lookup[~i]
-            x, y = A.labels[1], A.labels[2]
-            z, w = B.labels[1], B.labels[2]
-            eqn[x], eqn[y], eqn[z], eqn[w] = +1, +1, -1, -1
-        else:
-            A = T.corner_lookup[i]
-            x = A.labels[1] if A[1] == ~A[0] else A.labels[2]
-            z = A.labels[0]
-            eqn[x], eqn[z] = +1, -1
-        eqns.append([0] + eqn)  # V_x + X_y == V_z + V_w.
-    # Zeroed (in)equalities
-    for i in range(2*T.zeta):
-        if not zeroed[i]:
-            ieq = [0] * 2*T.zeta
-            ieq[i] = +1
-            ieqs.append([-1] + ieq)  # V_i >= 1.
-        else:  # Zeroed equation.
-            eqn = [0] * 2*T.zeta
-            eqn[i] = +1
-            eqns.append([0] + eqn)  # V_i == 0.
-    # Max weight inequality.
-    ieqs.append([max_weight] + [-1] * 2*T.zeta)  # sum V_i <= max_weight.
-    return Polyhedron(eqns=eqns, ieqs=ieqs)
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='sample curves of at most a given weight')
@@ -65,7 +33,7 @@ if __name__ == '__main__':
     else:
         T = curver.load(args.genus, max(args.punctures, 1)).triangulation
     
-    P = get_polyhedron(T, args.weight, zeros=args.zeros)
+    P = Polyhedron.from_triangulation(T, args.weight, zeros=args.zeros)
     num_integral_points = P.integral_points_count(triangulation='cddlib')
     print(P)
     try:
