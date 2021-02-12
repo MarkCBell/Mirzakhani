@@ -112,16 +112,16 @@ if __name__ == '__main__':
         
         def points():
             while True:
-            while True:
-                a, b, c, d = randrange(args.weight // 6), randrange(args.weight // 5), randrange(args.weight // 5), randrange(args.weight // 6)
-                if d < a + b and d < a + c: break
-            
-            while True:
-                w, x, y, z = randrange(args.weight // 3), randrange(args.weight // 3), randrange(args.weight // 2), randrange(args.weight // 3)
-                if z < w + x and z < w + y: break
+                while True:
+                    a, b, c, d = randrange(args.weight // 6), randrange(args.weight // 5), randrange(args.weight // 5), randrange(args.weight // 6)
+                    if d < a + b and d < a + c: break
                 
-                if a + b + c + z < d + w + x + y and d + w < a + b + c + z and d + z < a + b + c + w:
-                    yield (a, b, c, d, w, x, y, z)
+                while True:
+                    w, x, y, z = randrange(args.weight // 3), randrange(args.weight // 3), randrange(args.weight // 2), randrange(args.weight // 3)
+                    if z < w + x and z < w + y: break
+                    
+                    if a + b + c + z < d + w + x + y and d + w < a + b + c + z and d + z < a + b + c + w:
+                        yield (a, b, c, d, w, x, y, z)
         
         iterable = (dict(point=point) for point in points() if point in P)
     elif args.genus == 3 and args.punctures == 0:
