@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='sample curves on S_{0,6} of at most a given weight')
     parser.add_argument('--genus', '-g', type=int, default=2, help='genus of surface to work over')
     parser.add_argument('--punctures', '-p', type=int, default=0, help='num punctures of surface to work over')
-    parser.add_argument('--weight', '-w', type=int, default=1000000, help='max weight of curve allowed')
+    parser.add_argument('--upper', '-u', type=int, default=1000000, help='max weight of curve allowed')
     parser.add_argument('--lower', '-l', type=int, default=0, help='min weight of curve allowed')
     parser.add_argument('--cores', '-c', type=int, default=1, help='number of cores to use')
     parser.add_argument('--output', '-o', help='path to output to if not stdout')
@@ -49,7 +49,7 @@ if __name__ == '__main__':
             [0, -1, 1, 0, 2, 0, 0],  # -1 + 2 + 4 + 4
             [0, 1, 1, 0, 0, 0, -1],  # 1 + 2 - 6
             [0, -1, 0, 0, 1, 0, 1],  # 4 + 6 - 1
-            [args.weight, -4, -8, -5, -4, -5, -2],
+            [args.upper, -4, -8, -5, -4, -5, -2],
             [-args.lower, 4, 8, 5, 4, 5, 2],
             ] + [[-1] + [0] * i + [1] + [0] * (6-i-1) for i in range(6)]
             )
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         P = Polyhedron(eqns=[], ieqs=[
             [-1, 1, 1, 1, 0, 0, -1],
             [-1, -1, -1, -1, 1, 1, 1],
-            [args.weight, -7, -8, -7, -5, -5, -6],
+            [args.upper, -7, -8, -7, -5, -5, -6],
             [-args.lower, 7, 8, 7, 5, 5, 6],
             ] + [[-1] + [0] * i + [1] + [0] * (6-i-1) for i in range(6)])
         B = [(int(lower), int(upper)+1) for lower, upper in zip(*P.basic_bounding_box())]
@@ -105,19 +105,19 @@ if __name__ == '__main__':
             [0,-1,-1,-1, 1, 1, 1, 1,-1],  # -1 - 2 - 3 + 4 + 5 + 6 + 7 - 8
             [0, 1, 1, 1,-1,-1, 0, 0, 1],  # 1 + 2 + 3 - 4 - 5 + 8
             [0, 1, 1, 1,-1, 1, 0, 0, 1],  # 1 + 2 + 3 - 4 + 5 + 8
-            [args.weight, -6, -5, -5, 4, -3, -3, -2, 2],
-            [-args.lower, 6, 5, 5, -4, 3, 3, 2, -2],
+            [args.upper, -10, -8, -8, 6, -8, -6, -6, 4],
+            [-args.lower, 10, 8, 8, -6, 8, 6, 6, -4],
             ] + [[-1] + [0] * i + [1] + [0] * (8-i-1) for i in range(8)]
             )
         
         def points():
             while True:
                 while True:
-                    a, b, c, d = randrange(args.weight // 6), randrange(args.weight // 5), randrange(args.weight // 5), randrange(args.weight // 6)
+                    a, b, c, d = randrange(args.upper // 10), randrange(args.upper // 8), randrange(args.upper // 8), randrange(args.upper // 10)
                     if d < a + b and d < a + c: break
                 
                 while True:
-                    w, x, y, z = randrange(args.weight // 3), randrange(args.weight // 3), randrange(args.weight // 2), randrange(args.weight // 3)
+                    w, x, y, z = randrange(args.upper // 8), randrange(args.upper // 6), randrange(args.upper // 6), randrange(args.upper // 8)
                     if z < w + x and z < w + y: break
                     
                     if a + b + c + z < d + w + x + y and d + w < a + b + c + z and d + z < a + b + c + w:
@@ -164,7 +164,7 @@ if __name__ == '__main__':
             [-2,  0,  0,  0,  0,  0,  0,  0,  0, -2, +1, +1,  0],
             [-2,  0,  0,  0,  0,  0,  0, +2, +2, +2, -1, -1,  0],
             
-            [args.weight, -4, -2, -2, -4, -2, -2, -4, -2, -2, -6, -6, -6],
+            [args.upper, -4, -2, -2, -4, -2, -2, -4, -2, -2, -6, -6, -6],
             [-args.lower, +4, +2, +2, +4, +2, +2, +4, +2, +2, +6, +6, +6],
             ] + [[-1] + [0] * i + [1] + [0] * (12-i-1) for i in range(12)]
             )
@@ -172,10 +172,10 @@ if __name__ == '__main__':
         def points():
             while True:
                 while True:
-                    x, y, z = randrange(1, args.weight // 6 + 1), randrange(1, args.weight // 6 + 1), randrange(1, args.weight // 6 + 1)
+                    x, y, z = randrange(1, args.upper // 6 + 1), randrange(1, args.upper // 6 + 1), randrange(1, args.upper // 6 + 1)
                     if (x + y) % 2 == 0 and (y + z) % 2 == 0 and (z + x) % 2 == 0: break
                 
-                a1, a2, a3 = randrange(1, args.weight // 4 + 1), randrange(1, args.weight // 4 + 1), randrange(1, args.weight // 4 + 1)
+                a1, a2, a3 = randrange(1, args.upper // 4 + 1), randrange(1, args.upper // 4 + 1), randrange(1, args.upper // 4 + 1)
                 b1, c1 = randrange(1, (y + z) // 2 + 1), randrange(1, (y + z) // 2 + 1)
                 b2, c2 = randrange(1, (x + z) // 2 + 1), randrange(1, (x + z) // 2 + 1)
                 b3, c3 = randrange(1, (x + y) // 2 + 1), randrange(1, (x + y) // 2 + 1)
