@@ -6,6 +6,7 @@ import curver
 
 from polyhedron import Polyhedron
 from processor import process
+import intrinsic
 
 def from_index(T, P, closed, index):
     branch_weights = [int(x) for x in P.get_integral_point(index, triangulation='cddlib')]
@@ -13,27 +14,14 @@ def from_index(T, P, closed, index):
     multicurve = T(geometric)
     return '{}: {}, {}, {}'.format(index, multicurve.geometric, multicurve.num_components(), multicurve.topological_type(closed=closed))
 
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser(description='sample curves of at most a given weight')
-    parser.add_argument('--num', '-n', type=int, default=1000, help='number of samples to take')
-    parser.add_argument('--sig', '-s', type=str, help='signature of triangulation to use')
-    parser.add_argument('--genus', '-g', type=int, default=2, help='genus of surface to work over')
-    parser.add_argument('--punctures', '-p', type=int, default=0, help='num punctures of surface to work over')
-    parser.add_argument('--weight', '-w', type=int, default=1000000, help='max weight of a curve')
-    parser.add_argument('--zeros', '-z', type=int, default=35, help='which normal arcs to set to zero')
-    parser.add_argument('--cores', '-c', type=int, default=1, help='number of cores to use')
-    parser.add_argument('--output', '-o', help='path to output to if not stdout')
-    args = parser.parse_args()
-    
-    if args.cores <= 0: args.cores = mp.cpu_count()
-    
+
+def main(args):
     if args.sig is not None:
         T = curver.triangulation_from_sig(args.sig)
     else:
         T = curver.load(args.genus, max(args.punctures, 1)).triangulation
     
-    P = Polyhedron.from_triangulation(T, args.weight, zeros=args.zeros)
+    P = Polyhedron.from_triangulation(T, args.upper, zeros=args.zeros)
     num_integral_points = P.integral_points_count(triangulation='cddlib')
     print(P)
     try:
@@ -46,6 +34,26 @@ if __name__ == '__main__':
     iterable = (dict(index=randrange(0, num_integral_points)) for _ in range(args.num))
     
     process(from_index, common, iterable, cores=args.cores, path=args.output)
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='sample curves of at most a given weight')
+    parser.add_argument('--num', '-n', type=int, default=1000, help='number of samples to take')
+    parser.add_argument('--sig', '-s', type=str, help='signature of triangulation to use')
+    parser.add_argument('--genus', '-g', type=int, default=2, help='genus of surface to work over')
+    parser.add_argument('--punctures', '-p', type=int, default=0, help='num punctures of surface to work over')
+    parser.add_argument('--upper', '-u', type=int, default=1000000, help='max weight of a curve')
+    parser.add_argument('--lower', '-l', type=int, default=0, help='max weight of a curve')
+    parser.add_argument('--zeros', '-z', type=int, default=35, help='which normal arcs to set to zero')
+    parser.add_argument('--intrinsic', '-i', action='store_true', help='use intrinsic coordinates')
+    parser.add_argument('--cores', '-c', type=int, default=1, help='number of cores to use')
+    parser.add_argument('--output', '-o', help='path to output to if not stdout')
+    args = parser.parse_args()
+    
+    if args.intrinsic:
+        intrinsic.main(args)
+    else:
+        main(args)
 
 # python sample.py --genus=2 --punctures=0 --zeros=35
 # python sample.py --genus=1 --punctures=2 --zeros=18

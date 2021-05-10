@@ -1,28 +1,31 @@
 
-import os
-from subprocess import Popen, PIPE
-try:
-    from sage.all import Polyhedron as PP
-except ImportError:
-    PP = None
-from tempfile import TemporaryDirectory
 from fractions import Fraction
+from random import randrange
+from subprocess import Popen, PIPE
+from tempfile import TemporaryDirectory
 import inspect
+import os
+
 from decorator import decorator
+
+try:
+    from sage.all import Polyhedron as SagePolyhedron
+except ImportError:
+    SagePolyhedron = lambda *args, **kwargs: None
 
 @decorator
 def memoize(function, *args, **kwargs):
     ''' A decorator that memoizes a function. '''
-    
+
     inputs = inspect.getcallargs(function, *args, **kwargs)  # pylint: disable=deprecated-method
     self = inputs.pop('self', function)  # We test whether function is a method by looking for a `self` argument. If not we store the cache in the function itself.
-    
+
     if not hasattr(self, '_cache'):
         self._cache = dict()
     key = (function.__name__, frozenset(inputs.items()))
     if key not in self._cache:
         self._cache[key] = function(*args, **kwargs)
-    
+
     return self._cache[key]
 
 class Polyhedron:
@@ -30,7 +33,8 @@ class Polyhedron:
         self.eqns = eqns
         self.ieqs = ieqs
         self.ambient_dimension = len((self.eqns + self.ieqs)[0]) - 1
-    
+        self.sage_polyhedron = SagePolyhedron(eqns=self.eqns, ieqs=self.ieqs)
+
     @classmethod
     def from_triangulation(cls, T, max_weight, zeroed=None, zeros=None):
         if zeros is not None: zeroed = [(zeros >> i) & 1 for i in range(2 * T.zeta)][::-1]
@@ -63,25 +67,22 @@ class Polyhedron:
         # Max weight inequality.
         ieqs.append([max_weight] + [-1] * 2*T.zeta)  # sum V_i <= max_weight.
         return cls(eqns=eqns, ieqs=ieqs)
-    
+
     def __str__(self):
         return 'EQN:[\n{}\n]\nIEQS:[\n{}\n]'.format(',\n'.join(str(eqn) for eqn in self.eqns), ',\n'.join(str(ieq) for ieq in self.ieqs))
-    
+
     def split(self, inequality):
         return Polyhedron(self.eqns, self.ieqs + [inequality])
     def restrict(self, equality):
         return Polyhedron(self.eqns + [equality], self.ieqs)
-    def as_sage(self):
-        if PP is None:
-            raise AttributeError('Not running in Sage')
-        return PP(eqns=self.eqns, ieqs=self.ieqs)
-    
+
     def __contains__(self, coordinate):
         assert len(coordinate) == self.ambient_dimension
         homogenised = [1] + list(coordinate)
         def dot(X, Y): return sum(x * y for x, y in zip(X, Y))
+        # print([dot(homogenised, ieq) >= 0 for ieq in self.ieqs])
         return all(dot(homogenised, eqn) == 0 for eqn in self.eqns) and all(dot(homogenised, ieq) >= 0 for ieq in self.ieqs)
-    
+
     def get_index(self, coordinate, **kwds):
         assert coordinate in self
         D = self.ambient_dimension
@@ -92,17 +93,20 @@ class Polyhedron:
             P_lt_comp = P.split([coordinate[i]-1] + neg_axis)
             index += P_lt_comp.integral_points_count(**kwds)
             P = P.restrict([coordinate[i]] + neg_axis)
-        
+
         return index
-    
+
     def get_integral_point(self, index, **kwds):
+        if self.sage_polyhedron is not None:
+            return self.sage_polyhedron.get_integral_point(**kwds)
+
         D = self.ambient_dimension
         axes = [[0] *i + [1] + [0] * (D - i - 1) for i in range(D)]
         coordinate = []
         P = self
         P_count = P.integral_points_count(**kwds)  # Record the number of integral points in P_{lower <= x_i < upper}.
         bounding_box = zip(*self.bounding_box())
-        
+
         for axis, bounds in zip(axes, bounding_box):  # Now compute x_i, the ith component of coordinate.
             neg_axis = [-x for x in axis]
             lower, upper = int(bounds[0]), int(bounds[1]) + 1  # So lower <= x_i < upper.
@@ -112,7 +116,7 @@ class Polyhedron:
                 # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
                 P_lt_guess = P.split([-lower] + axis).split([guess-1] + neg_axis)
                 P_lt_guess_count = P_lt_guess.integral_points_count(**kwds)
-                
+
                 if P_lt_guess_count > index:  # Move upper down to guess.
                     upper = guess
                     index -= 0
@@ -130,15 +134,17 @@ class Polyhedron:
             P = P.restrict([lower] + neg_axis)
         # assert self.get_index(coordinate) == orig_index
         return coordinate
-    
+
     def integral_points_count(self, **kwds):
-        # latte_input = 'H-representation\n{} {} rational\n{}\nlinearity {} {}'.format(
+        if self.sage_polyhedron is not None:
+            return self.sage_polyhedron.integral_points_count(**kwds)
+
         latte_input = '{} {}\n{}\nlinearity {} {}'.format(
             len(self.eqns) + len(self.ieqs), self.ambient_dimension+1,
             '\n'.join(' '.join(str(x) for x in X) for X in self.eqns + self.ieqs),
             len(self.eqns), ' '.join(str(i+1) for i in range(len(self.eqns))),
             )
-        
+
         args = [os.path.abspath(os.path.join('bin', 'count'))]
 
         for key, value in kwds.items():
@@ -165,7 +171,7 @@ class Polyhedron:
             latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=str(tmpdir))
             ans, err = latte_proc.communicate()
             ret_code = latte_proc.poll()
-            
+
             if ans: # Sometimes (when LattE's preproc does the work), no output appears on stdout.
                 ans = ans.splitlines()[-1].decode()
             else:
@@ -178,34 +184,38 @@ class Polyhedron:
             return int(ans)
         except ValueError:
             return 0
-    
+
     @memoize
     def vertices(self):
+        if self.sage_polyhedron is not None:
+            return self.sage_polyhedron.vertices()
+
         cddlib_input = 'H-representation\nlinearity {} {}\nbegin\n{} {} rational\n{}\nend'.format(
             len(self.eqns), ' '.join(str(i+1) for i in range(len(self.eqns))),
             len(self.eqns) + len(self.ieqs), self.ambient_dimension+1,
             '\n'.join(' '.join(str(x) for x in X) for X in self.eqns + self.ieqs),
             )
-        
+
         args = [os.path.abspath(os.path.join('bin', 'cddexec_gmp')), '--rep']
         cddlib_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = cddlib_proc.communicate(input=cddlib_input.encode())
         ret_code = cddlib_proc.poll()
-        
+
         def parse(x):
             n, _, d = x.partition('/')
             return Fraction(int(n), int(d) if d else 1)
-        
+
         return [[parse(item) for item in line.split()[1:]] for line in ans.decode().splitlines()[4:-1]]
-    
+
+    @memoize
     def bounding_box(self):
         return list(zip(*[(min(coords), max(coords)) for coords in zip(*self.vertices())]))
-    
-    def basic_bounding_box(self):
-        non_negative = [ieq for ieq in self.ieqs if all(entry >= 0 for entry in ieq[1:])]
-        non_positive = [ieq for ieq in self.ieqs if all(entry <= 0 for entry in ieq[1:])]
-        return [max(-ieq[0] // ieq[i+1] for ieq in non_negative if ieq[i+1]) for i in range(self.ambient_dimension)], \
-            [min(-ieq[0] // ieq[i+1] + 1 for ieq in non_positive if ieq[i+1]) for i in range(self.ambient_dimension)]
+
+    def random_point(self):
+        while True:
+            p = [randrange(int(lower), int(upper)+1) for lower, upper in zip(*self.bounding_box())]
+            if p in self:
+                return p
 
 if __name__ == '__main__':
     P = Polyhedron([], [[6243, 55, 108], [310, -12, -143], [16, -43, 35]])
